@@ -34,7 +34,7 @@ A = const['span_3D']/const['chord']
 # Plotting lift curve
 # plt.title('Lift curve')
 plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='blue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
 plt.xlabel(r'$\alpha$ (deg)')
 plt.ylabel(r'C$_{\text{L}}$')
@@ -44,7 +44,7 @@ plt.show()
 # Plotting lift polar
 # plt.title('Lift polar')
 plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='blue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
 plt.xlabel(r'C$_{\text{D}}$')
 plt.ylabel(r'C$_{\text{L}}$')
