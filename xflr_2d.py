@@ -36,12 +36,11 @@ def plot_cp_at_alpha(alpha: float, viscous: bool = True):
 
     #plt.plot(x, y, linestyle='-', linewidth=1.5, color='black')
     if viscous:
-        plt.plot(x, cp_viscous, linestyle='-', linewidth=1.5)
+        plt.plot(x, cp_viscous, linestyle='-', linewidth=1.5, label = 'XFOIL')
     else: plt.plot(x, cp_inviscous, linestyle='-', linewidth=1.5)
     #plt.axis("equal")
     plt.grid()
     plt.gca().invert_yaxis()
-    plt.show()
 
     print(pressure_coeffs)
 

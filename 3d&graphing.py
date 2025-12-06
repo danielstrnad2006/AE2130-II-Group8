@@ -117,13 +117,13 @@ plt.ylabel(r'C$_{\text{L}}$ [-]')
 plt.legend(('Induced Drag', 'Total Drag'))
 plt.show()
 
-# Plotting induced drag
+# Plotting induced drag comparison
 plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(xflr_Cdi[:-1], xflr_Cl[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
-plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
+plt.xlabel(r'C$_{\text{D}_{\text{i}}}$ [-]')
 plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Induced Drag', 'Total Drag'))
+plt.legend(('Experiment', 'XFLR5'))
 plt.show()
 
 # Plotting 2d xflr vs experimental
@@ -131,6 +131,24 @@ plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacec
 plt.plot(xflr_alpha_2d[:-1], xflr_Cl_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
 plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
+plt.ylabel(r'C$_{\text{l}}$ [-]')
 plt.legend(('Experiment', 'XFOIL'))
+plt.show()
+
+# Plotting pressure coefficient distribution at a given AOA
+AOA = float(input("AOA for pressure coefficients comparison [deg]: "))
+plot_cp_at_alpha(AOA)
+x_axis = np.linspace(0, 1, 100)
+if AOA <= 8:
+    i = (AOA + 5) * 2 + 1
+else:
+    i = (AOA - 8) * 2 + 14
+plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="Experiment", color='black')
+plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), color='black')
+plt.xlabel("Position along chord [-]")
+plt.ylabel(r"Pressure coefficient c$_{\text{p}}$ [-]")
+plt.legend()
+plt.gca().invert_yaxis()
+plt.grid(True, axis="both")
+plt.axhline(y=0, color='k', linewidth=0.5)
 plt.show()
