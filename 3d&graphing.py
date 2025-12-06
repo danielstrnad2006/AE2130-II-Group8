@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from constants import const
 from experimental_2d import test_cases
+from xflr_2d import plot_cp_at_alpha, xflr_alpha_2d, xflr_Cd_2d, xflr_Cl_2d
 
 
 # ----- Loading Data -----
@@ -62,7 +63,6 @@ linear_cl_3D = linear_alpha_3D * a3D * m.pi/180 + intercept_3d
 
 # ----- PLotting -----
 # Plotting 2D vs 3D data
-# plt.title('Lift curve')
 plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(exp_alpha, exp_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
@@ -73,7 +73,6 @@ plt.show()
 
 
 # Plotting lift curve
-# plt.title('Lift curve')
 plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
@@ -83,7 +82,6 @@ plt.legend(('Experiment', 'XFLR5'))
 plt.show()
 
 # Plotting lift polar
-# plt.title('Lift polar')
 plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
@@ -93,7 +91,6 @@ plt.legend(('Experiment', 'XFLR5'))
 plt.show()
 
 # Plotting Clalpha best fit line
-# plt.title('Lift polar')
 plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(linear_alpha_2D, linear_cl_2D, linestyle='dotted', linewidth=1, color='black')
 plt.grid()
@@ -103,7 +100,6 @@ plt.legend(('Experiment', 'Linear region line of best fit'))
 plt.show()
 
 # Plotting CLalpha best fit line
-# plt.title('Lift polar')
 plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(linear_alpha_3D, linear_cl_3D, linestyle='dotted', linewidth=1, color='black')
 plt.grid()
@@ -113,11 +109,28 @@ plt.legend(('Experiment', 'Linear region line of best fit'))
 plt.show()
 
 # Plotting induced drag
-# plt.title('Lift polar')
 plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
 plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
 plt.ylabel(r'C$_{\text{L}}$ [-]')
 plt.legend(('Induced Drag', 'Total Drag'))
+plt.show()
+
+# Plotting induced drag
+plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.grid()
+plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
+plt.ylabel(r'C$_{\text{L}}$ [-]')
+plt.legend(('Induced Drag', 'Total Drag'))
+plt.show()
+
+# Plotting 2d xflr vs experimental
+plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(xflr_alpha_2d[:-1], xflr_Cl_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{L}}$ [-]')
+plt.legend(('Experiment', 'XFOIL'))
 plt.show()

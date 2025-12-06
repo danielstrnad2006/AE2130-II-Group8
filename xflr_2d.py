@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 xflr_data_2d = np.genfromtxt('XFLR5_data_2D_Re=2e5.csv', delimiter=",", skip_header=5)
-xflr_alpha = xflr_data_2d[:,0] # deg
-xflr_Cl = xflr_data_2d[:,2] # [-]
-xflr_Cd = xflr_data_2d[:,1] # [-]
-xflr_Cm = xflr_data_2d[:,3] # [-]
+xflr_alpha_2d = xflr_data_2d[:,0] # deg
+xflr_Cl_2d = xflr_data_2d[:,2] # [-]
+xflr_Cd_2d = xflr_data_2d[:,1] # [-]
+#xflr_Cm = xflr_data_2d[:,3] # [-]
 
 # Couldn't make it work with np.genfromtxt so had to make this helper function
 def extract_raw_rows(filename, start, end):
@@ -59,5 +59,3 @@ def plot_cp_at_alpha(alpha: float, viscous: bool = True):
 
 # print(plot_cp_at_alpha(-5))
 # print(plot_cp_at_alpha(-4.5))
-
-plot_cp_at_alpha(5)
