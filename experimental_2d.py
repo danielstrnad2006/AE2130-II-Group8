@@ -13,7 +13,7 @@ run_nr_2d = run_nr_2d.astype(int)
 alpha_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(2))
 rho_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(7))
 p_bar_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(4))
-delta_p_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(5))
+delta_p_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(3))
 pressure_suctionSide_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=range(8,33))
 ports_loc_suctionSide_2d = np.array([0,  0.0035626,  0.0133331,  0.0366108,  0.072922,  0.1135604,  0.1559135,  0.1991328,  0.2428443,  0.2868627,  0.3310518,  0.3753128,  0.4195991,  0.4638793,  0.508156,  0.552486,  0.5969223,  0.6413685,  0.68579,  0.7302401,  0.7747357,  0.8193114,  0.8638589,  0.908108,  1])
 pressure_pressureSide_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=range (34, 58))
@@ -45,7 +45,9 @@ Initialize an object for each test scenario which automatically calculates all t
 class AirfoilTest: 
     def __init__(self, run_nr, alpha, rho, p_pressureSide, p_suctionSide, p_total_wake, p_static_wake, p_pitot_total, p_pitot_static, p_barometric, delta_p_b):
         self.run_nr = run_nr
+        
         self.dynamic_pressure = 0.211804 + 1.928442 * (delta_p_b) + 1.879374e-4 * (delta_p_b)**2
+        
         self.static_pressure = p_barometric * 100
         self.alpha = alpha
         self.rho = rho
