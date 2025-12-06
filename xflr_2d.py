@@ -42,7 +42,7 @@ def plot_cp_at_alpha(alpha: float, viscous: bool = True):
     plt.grid()
     plt.gca().invert_yaxis()
 
-    print(pressure_coeffs)
+    #print(pressure_coeffs)
 
 
 
