@@ -97,34 +97,35 @@ for i, run_nr in enumerate(run_nr_2d):
     test_cases[int(run_nr)] = airfoil_test
 
 
+if __name__ == "__main__":
 # Example plot for run number 5
-x_axis = np.linspace(0, 1, 100)
-i = None
-i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
-if i in range(1,42):
-    plt.figure()
-    plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="pressure side")
-    plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
-    plt.xlabel("Position along chord")
-    plt.ylabel("Pressure coefficient (c_p)")
-    plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°")
-    plt.legend()
-    plt.gca().invert_yaxis()
-    plt.grid(True, axis="both")
-    plt.axhline(y=0, color='k', linewidth=0.5)
-    plt.show()
-    print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
-    print ("Axial force coefficient is computed to be: ", test_cases[i].c_axial)
+    x_axis = np.linspace(0, 1, 100)
+    i = None
+    i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
+    if i in range(1,42):
+        plt.figure()
+        plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="pressure side")
+        plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
+        plt.xlabel("Position along chord")
+        plt.ylabel("Pressure coefficient (c_p)")
+        plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°")
+        plt.legend()
+        plt.gca().invert_yaxis()
+        plt.grid(True, axis="both")
+        plt.axhline(y=0, color='k', linewidth=0.5)
+        plt.show()
+        print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
+        print ("Axial force coefficient is computed to be: ", test_cases[i].c_axial)
 
 
-if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
-    x_axis = [test_cases[i].alpha for i in test_cases]
-    c_lift_axis = [test_cases[i].c_lift for i in test_cases]
-    plt.figure()
-    plt.plot(x_axis, c_lift_axis, marker='o')
-    plt.xlabel("Angle of attack (degrees)")
-    plt.ylabel("Lift coefficient (c_lift)")
-    plt.title("Lift coefficient vs Angle of attack")
-    plt.grid(True, axis="both")
-    plt.axhline(y=0, color='k', linewidth=0.5)
-    plt.show()
+    if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
+        x_axis = [test_cases[i].alpha for i in test_cases]
+        c_lift_axis = [test_cases[i].c_lift for i in test_cases]
+        plt.figure()
+        plt.plot(x_axis, c_lift_axis, marker='o')
+        plt.xlabel("Angle of attack (degrees)")
+        plt.ylabel("Lift coefficient (c_lift)")
+        plt.title("Lift coefficient vs Angle of attack")
+        plt.grid(True, axis="both")
+        plt.axhline(y=0, color='k', linewidth=0.5)
+        plt.show()
