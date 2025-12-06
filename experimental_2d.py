@@ -45,8 +45,8 @@ Initialize an object for each test scenario which automatically calculates all t
 class AirfoilTest: 
     def __init__(self, run_nr, alpha, rho, p_pressureSide, p_suctionSide, p_total_wake, p_static_wake, p_pitot_total, p_pitot_static, p_barometric, delta_p_b):
         self.run_nr = run_nr
-        self.dynamic_pressure = 0.211804 + 1.928442 * delta_p_b + 1.879374e-4 * (delta_p_b)**2
-        self.static_pressure = p_barometric + p_pitot_static - self.dynamic_pressure
+        self.dynamic_pressure = 0.211804 + 1.928442 * (delta_p_b) + 1.879374e-4 * (delta_p_b)**2
+        self.static_pressure = p_barometric * 100
         self.alpha = alpha
         self.rho = rho
         c_p_axial__suctionSide_arr = np.array([p_suctionSide[i]*coefs_axial_suctionSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
@@ -74,6 +74,9 @@ class AirfoilTest:
     
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         self.c_axial = sp.integrate.trapezoid(integrate_c_p_axial_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_axial_pressureSide, x=domain)
+
+        self.c_lift = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
+        self.c_drag = self.c_normal * np.sin(np.deg2rad(self.alpha)) + self.c_axial * np.cos(np.deg2rad(self.alpha))
 test_cases = {}
 for i, run_nr in enumerate(run_nr_2d):
     airfoil_test = AirfoilTest(
@@ -94,30 +97,32 @@ for i, run_nr in enumerate(run_nr_2d):
 
 # Example plot for run number 5
 x_axis = np.linspace(0, 1, 100)
-i = 15
+i = None
+i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
+if i in range(1,42):
+    plt.figure()
+    plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="pressure side")
+    plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
+    plt.xlabel("Position along chord")
+    plt.ylabel("Pressure coefficient (c_p)")
+    plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°")
+    plt.legend()
+    plt.gca().invert_yaxis()
+    plt.grid(True, axis="both")
+    plt.axhline(y=0, color='k', linewidth=0.5)
+    plt.show()
+    print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
+    print ("Axial force coefficient is computed to be: ", test_cases[i].c_axial)
 
-plt.figure()
-plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="pressure side")
-plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
-plt.xlabel("Position along chord")
-plt.ylabel("Pressure coefficient (c_p)")
-plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°")
-plt.legend()
-plt.gca().invert_yaxis()
-plt.grid(True, axis="both")
-plt.axhline(y=0, color='k', linewidth=0.5)
-plt.show()
-print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
-print ("Axial force coefficient is computed to be: ", test_cases[i].c_axial)
 
-
-x_axis = [test_cases[i].alpha for i in test_cases]
-c_normal_axis = [test_cases[i].c_normal for i in test_cases]
-plt.figure()
-plt.plot(x_axis, c_normal_axis, marker='o')
-plt.xlabel("Angle of attack (degrees)")
-plt.ylabel("Normal force coefficient (c_n)")
-plt.title("Normal force coefficient vs Angle of attack")
-plt.grid(True, axis="both")
-plt.axhline(y=0, color='k', linewidth=0.5)
-plt.show()
+if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
+    x_axis = [test_cases[i].alpha for i in test_cases]
+    c_lift_axis = [test_cases[i].c_lift for i in test_cases]
+    plt.figure()
+    plt.plot(x_axis, c_lift_axis, marker='o')
+    plt.xlabel("Angle of attack (degrees)")
+    plt.ylabel("Lift coefficient (c_lift)")
+    plt.title("Lift coefficient vs Angle of attack")
+    plt.grid(True, axis="both")
+    plt.axhline(y=0, color='k', linewidth=0.5)
+    plt.show()
