@@ -3,6 +3,7 @@ import math as m
 import matplotlib.pyplot as plt
 
 from constants import const
+from experimental_2d import test_cases
 
 
 # ----- Loading Data -----
@@ -19,7 +20,8 @@ xflr_Cl = xflr_data_3d[:,2] # [-]
 xflr_Cd = xflr_data_3d[:,5] # [-]
 xflr_Cdi = xflr_data_3d[:, 3] # [-]
 
-print(xflr_data_3d)
+exp_2D_alpha = np.array([test_cases[i].alpha for i in test_cases])
+exp_2D_Cl = np.array([test_cases[i].c_lift for i in test_cases])
 
 # ----- Calculations -----
 exp_q = 1/2 * exp_rho * const['velocity']**2 
@@ -27,23 +29,49 @@ exp_Cl = exp_lift_F / (exp_q * const['surface_area_3D'])
 exp_Cd = exp_drag_F / (exp_q * const['surface_area_3D'])
 
 A = const['span_3D']/const['chord']
+print(A)
 #print(A)
 
+# Finding slope of 2d
+key = (exp_2D_alpha > 0) & (exp_2D_alpha < 10)
+a2D, intercept_2d = np.polyfit(exp_2D_alpha[key], exp_2D_Cl[key], 1)  # [1/deg], [-]
+a2D = a2D*180/m.pi
+#a2D = 2 * m.pi
+print(a2D)
+
+# Finding slope of 3d
+key = (exp_alpha > 0) & (exp_alpha < 10)
+a3D, intercept_3d = np.polyfit(exp_alpha[key], exp_Cl[key], 1)  # [1/deg], [-]
+a3D = a3D*180/m.pi
+print(a3D)
 
 # Finding tau
-key = (exp_alpha > 0) & (exp_alpha < 10)
-a3D, intercept = np.polyfit(exp_alpha[key], exp_Cl[key], 1)  # [1/deg], [-]
-tau = (a3D*180/m.pi) / (2*m.pi) # replace with proper value when known
+tau = (m.pi * A / a2D) * (a2D / a3D - 1) - 1
 #print("Lift slope:", a3D*180/m.pi, "and tau:", tau)
 exp_Cdi = exp_Cl**2 / (m.pi * A * tau)
+print(tau)
 
 
 # Preparing for plotting
-linear_alpha = np.linspace(np.min(exp_alpha), np.max(exp_alpha), 100)
-linear_cl = linear_alpha * a3D + intercept
+linear_alpha_2D = np.linspace(np.min(exp_alpha), np.max(exp_alpha), 100)
+linear_cl_2D = linear_alpha_2D * a2D * m.pi/180 + intercept_2d
+
+linear_alpha_3D = np.linspace(np.min(exp_alpha), np.max(exp_alpha), 100)
+linear_cl_3D = linear_alpha_3D * a3D * m.pi/180 + intercept_3d
 
 
 # ----- PLotting -----
+# Plotting 2D vs 3D data
+# plt.title('Lift curve')
+plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(exp_alpha, exp_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{l}}$ or C$_{\text{L}}$ [-]')
+plt.legend(('2D wing experimental', '3D wing experimental'))
+plt.show()
+
+
 # Plotting lift curve
 # plt.title('Lift curve')
 plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
@@ -64,12 +92,22 @@ plt.ylabel(r'C$_{\text{L}}$ [-]')
 plt.legend(('Experiment', 'XFLR5'))
 plt.show()
 
+# Plotting Clalpha best fit line
+# plt.title('Lift polar')
+plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(linear_alpha_2D, linear_cl_2D, linestyle='dotted', linewidth=1, color='black')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{l}}$ [-]')
+plt.legend(('Experiment', 'Linear region line of best fit'))
+plt.show()
+
 # Plotting CLalpha best fit line
 # plt.title('Lift polar')
 plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(linear_alpha, linear_cl, linestyle='dotted', linewidth=1, color='black')
+plt.plot(linear_alpha_3D, linear_cl_3D, linestyle='dotted', linewidth=1, color='black')
 plt.grid()
-plt.xlabel(r'C$_{\text{D}}$ [-]')
+plt.xlabel(r'$\alpha$ [deg]')
 plt.ylabel(r'C$_{\text{L}}$ [-]')
 plt.legend(('Experiment', 'Linear region line of best fit'))
 plt.show()
@@ -77,9 +115,9 @@ plt.show()
 # Plotting induced drag
 # plt.title('Lift polar')
 plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_Cdi, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
 plt.grid()
-plt.xlabel(r'C$_{\text{D}_{\text{i}}}$ [-]')
+plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
 plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Experiment', 'XFLR5'))
+plt.legend(('Induced Drag', 'Total Drag'))
 plt.show()
