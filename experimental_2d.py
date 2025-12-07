@@ -166,54 +166,58 @@ if __name__ == "__main__":
 
 # Plot c_p distribution for user-specified run numbers
 
-    i = None
-    i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
-    if i in range(1,42):
+    i = input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: ")
+    if i != "":
+        i = int(i)
+        if i in range(1,42):
         
-        plt.figure()
-        plt.plot(ports_loc_pressureSide_2d, test_cases[i].cp_normal_pressureSide_distribution(ports_loc_pressureSide_2d), label="c_p distribution over the pressure side", color = "red", marker = "x")
-        plt.plot(ports_loc_suctionSide_2d, test_cases[i].cp_normal_suctionSide_distribution(ports_loc_suctionSide_2d), label="c_p distribution over the suction side", color = "blue", marker = "x")
-        plt.xlabel("Position along chord")
-        plt.ylabel("Pressure coefficient (c_p)")
-        plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°, and Reynolds number = {test_cases[i].reynolds_number:.2e}")
-        plt.legend()
-        plt.gca().invert_yaxis()
-        plt.grid(True, axis="both")
-        plt.axhline(y=0, color='k', linewidth=0.5)
-        plt.show()
-        print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
+            plt.figure()
+            plt.plot(ports_loc_pressureSide_2d, test_cases[i].cp_normal_pressureSide_distribution(ports_loc_pressureSide_2d), label="c_p distribution over the pressure side", color = "red", marker = "x")
+            plt.plot(ports_loc_suctionSide_2d, test_cases[i].cp_normal_suctionSide_distribution(ports_loc_suctionSide_2d), label="c_p distribution over the suction side", color = "blue", marker = "x")
+            plt.xlabel("Position along chord")
+            plt.ylabel("Pressure coefficient (c_p)")
+            plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°, and Reynolds number = {test_cases[i].reynolds_number:.2e}")
+            plt.legend()
+            plt.gca().invert_yaxis()
+            plt.grid(True, axis="both")
+            plt.axhline(y=0, color='k', linewidth=0.5)
+            plt.show()
+            print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
+            print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
 
 # Plot Wake pressure distributions for user-specified run numbers
-    i = None
-    i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
-    if i in range(1,42):
-        x_axis = np.linspace(0, 0.219, 200)
-        fig, ax1 = plt.subplots()
-        
-        ax1.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
-        ax1.plot(x_axis, test_cases[i].pressure_static_wake_distribution(x_axis), label="wake static pressure")
-        ax1.set_xlabel("Position along the wake [m]")
-        ax1.set_ylabel("Pressure [Pa]")
-        ax1.invert_yaxis()
-        ax1.grid(True, axis="both")
-        ax1.axhline(y=0, color='k', linewidth=0.5)
-        
-        ax2 = ax1.twinx()
-        domain_wake = np.linspace(0, 0.219, 200)
-        integrate_pressure_static_wake = test_cases[i].pressure_static_wake_distribution(domain_wake)
-        integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
-        u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
-        
-        ax2.axhline(y=test_cases[i].pitot_u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].pitot_u_inf:.2f} m/s")
-        ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake")
-        ax2.set_ylabel("Velocity [m/s]")
-        ax2.legend(loc="upper right")
-        
-        ax1.legend(loc="upper left")
-        plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
-        plt.show()
-
-
+    i = input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: ")
+    if i != "":
+        i = int(i)
+        if i in range(1,42):
+    
+            fig, ax1 = plt.subplots()
+            
+            ax1.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
+            ax1.plot(x_axis, test_cases[i].pressure_static_wake_distribution(x_axis), label="wake static pressure")
+            ax1.set_xlabel("Position along the wake [m]")
+            ax1.set_ylabel("Pressure [Pa]")
+            ax1.invert_yaxis()
+            ax1.grid(True, axis="both")
+            ax1.axhline(y=0, color='k', linewidth=0.5)
+            
+            ax2 = ax1.twinx()
+            domain_wake = np.linspace(0, 0.219, 200)
+            integrate_pressure_static_wake = test_cases[i].pressure_static_wake_distribution(domain_wake)
+            integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
+            u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
+            
+            ax2.axhline(y=test_cases[i].pitot_u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].pitot_u_inf:.2f} m/s")
+            ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake")
+            ax2.set_ylabel("Velocity [m/s]")
+            ax2.legend(loc="upper right")
+            
+            ax1.legend(loc="upper left")
+            plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
+            ax1.legend(loc="upper left")
+            plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
+            plt.show()
+    
     if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
         
