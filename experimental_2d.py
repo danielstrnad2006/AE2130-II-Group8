@@ -107,11 +107,18 @@ class AirfoilTest:
         self.u_wake_distribution = interpolate.interp1d(domain_wake, self.u_wake, kind="linear", fill_value = (self.u_wake[0], self.u_wake[-1]), bounds_error=False) 
 
         # Momentum deficit term
-        momentum_deficit = self.rho * sp.integrate.trapezoid(
+        momentum_deficit_pitot = self.rho * sp.integrate.trapezoid(
+            (self.pitot_u_inf - self.u_wake) * self.u_wake,
+            x=domain_wake
+        )
+        momentum_deficit_freestream = self.rho * sp.integrate.trapezoid(
+            (self.u_inf - self.u_wake) * self.u_wake,
+            x=domain_wake
+        )
+        momentum_deficit_wake = self.rho * sp.integrate.trapezoid(
             (self.wake_u_inf - self.u_wake) * self.u_wake,
             x=domain_wake
         )
-
         # Pressure deficit term (wake not fully recovered)
         pressure_deficit = sp.integrate.trapezoid(
             (self.static_pressure - p_s_wake),
@@ -119,10 +126,14 @@ class AirfoilTest:
         )
 
         # Total drag 
-        drag_integral =pressure_deficit  + momentum_deficit 
+        drag_integral_freestream =pressure_deficit  + momentum_deficit_freestream
+        drag_integral_pitot = pressure_deficit  + momentum_deficit_pitot
+        drag_integral_wake = pressure_deficit  + momentum_deficit_wake 
         # drag_integral = np.abs(momentum_deficit) + np.abs(pressure_deficit)
 
-        self.c_drag = drag_integral / (0.5 * self.rho * self.wake_u_inf**2 * 0.16)
+        self.c_drag_pitot = drag_integral_pitot / (0.5 * self.rho * self.wake_u_inf**2 * 0.16)
+        self.c_drag_wake = drag_integral_wake / (0.5 * self.rho * self.wake_u_inf**2 * 0.16)
+        self.c_drag = drag_integral_freestream / (0.5 * self.rho * self.u_inf**2 * 0.16)
 
         print()
 
@@ -235,9 +246,13 @@ if __name__ == "__main__":
         ax1.legend()
         
         x_axis_drag_pressure = [test_cases[i].c_drag_pressure for i in test_cases]
-        x_axis_drag = [test_cases[i].c_drag for i in test_cases]
+        x_axis_drag_freestream = [test_cases[i].c_drag for i in test_cases]
+        x_axis_drag_wake = [test_cases[i].c_drag_wake for i in test_cases]
+        x_axis_drag_pitot = [test_cases[i].c_drag_pitot for i in test_cases]
         ax2.plot(x_axis_drag_pressure, c_lift_pressure_axis, label="Drag polar(from pressure distribution)", marker='x', color="green")
-        ax2.plot(x_axis_drag, c_lift_axis, label="Drag polar(incl. viscous drag)", marker='x', color="purple")
+        ax2.plot(x_axis_drag_freestream, c_lift_axis, label="Drag polar(incl. viscous drag), using the reference freestream velocity", marker='x', color="purple")
+        ax2.plot(x_axis_drag_wake, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity at the edges of the wake", marker='x', color="orange")
+        ax2.plot(x_axis_drag_pitot, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity from the pitot-static tube", marker='x', color="red")
         ax2.set_xlabel("Drag coefficient (c_drag)")
         ax2.set_ylabel("Lift coefficient (c_lift)")
         ax2.set_title("Lift coefficient vs Drag coefficient")
