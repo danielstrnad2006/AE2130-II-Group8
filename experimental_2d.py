@@ -190,7 +190,7 @@ if __name__ == "__main__":
     if i != "":
         i = int(i)
         if i in range(1,42):
-    
+            x_axis = np.linspace(0, 0.219, 100)
             fig, ax1 = plt.subplots()
             
             ax1.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
