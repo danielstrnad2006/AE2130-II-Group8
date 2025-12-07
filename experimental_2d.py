@@ -87,7 +87,7 @@ class AirfoilTest:
         
         self.pressure_static_wake_distribution = interpolate.interp1d(ports_loc_static_wake_2d, p_static_wake, kind="linear", fill_value = (p_static_wake[0], p_static_wake[-1]), bounds_error=False)
         self.pressure_total_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, p_total_wake, kind="linear", fill_value = (p_total_wake[0], p_total_wake[-1]), bounds_error=False)
-
+        self.u_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, self.u_wake, kind="linear", fill_value = (self.u_wake[0], self.u_wake[-1]), bounds_error=False)    
 
         
         
@@ -100,21 +100,22 @@ class AirfoilTest:
         p_t_wake = self.pressure_total_wake_distribution(domain_wake)
 
         # Free-stream pressures
-        p_t_inf = p_barometric * 100 + p_pitot_total
+        p_t_inf = self.static_pressure + self.dynamic_pressure
         p_inf = self.static_pressure
-        u_inf = np.sqrt(2 * (p_t_inf - p_inf) / self.rho)
+        self.pitot_u_inf = np.sqrt(2 * (p_pitot_total - p_pitot_static) / self.rho)
+
         # Wake velocity from Bernoulli
-        self.u_wake = np.sqrt( 2*(p_t_wake - (self.static_pressure-p_barometric*100)) / self.rho )
+        self.u_wake = np.sqrt( 2*(p_t_wake - p_s_wake) / self.rho )
 
         # Momentum deficit term
         momentum_deficit = self.rho * sp.integrate.trapezoid(
-            (u_inf - self.u_wake) * self.u_wake,
+            (self.pitot_u_inf - self.u_wake) * self.u_wake,
             x=domain_wake
         )
 
         # Pressure deficit term (wake not fully recovered)
         pressure_deficit = sp.integrate.trapezoid(
-            (p_inf - p_s_wake),
+            (p_pitot_static - p_s_wake),
             x=domain_wake
         )
 
@@ -138,7 +139,7 @@ class AirfoilTest:
         self.c_drag_pressure = self.c_normal * np.sin(np.deg2rad(self.alpha)) + self.c_axial * np.cos(np.deg2rad(self.alpha))
 
         
-        #self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
+        self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
         
        
 test_cases = {}
@@ -201,10 +202,10 @@ if __name__ == "__main__":
         domain_wake = np.linspace(0, 0.219, 200)
         integrate_pressure_static_wake = test_cases[i].pressure_static_wake_distribution(domain_wake)
         integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
-        u_wake = [np.sqrt(2*(integrate_pressure_total_wake[k] - integrate_pressure_static_wake[k])/test_cases[i].rho) for k in range(len(domain_wake))]
+        u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
         
-        ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].u_inf:.2f} m/s")
-        ax2.plot(domain_wake, u_wake, color='orange', label="u_wake")
+        ax2.axhline(y=test_cases[i].pitot_u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].pitot_u_inf:.2f} m/s")
+        ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake")
         ax2.set_ylabel("Velocity [m/s]")
         ax2.legend(loc="upper right")
         
@@ -214,27 +215,31 @@ if __name__ == "__main__":
 
 
     if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+        
         x_axis = [test_cases[i].alpha for i in test_cases]
-        c_lift_axis = [test_cases[i].c_lift_pressure for i in test_cases]
-        plt.figure()
-        plt.plot(x_axis, c_lift_axis, marker='o')
-        plt.xlabel("Angle of attack (degrees)")
-        plt.ylabel("Lift coefficient (c_lift)")
-        plt.title("Lift coefficient vs Angle of attack (considering pressure forces only)")
-        plt.grid(True, axis="both")
-        plt.axhline(y=0, color='k', linewidth=0.5)
-        plt.show()
-
-
-if input("Do you want to plot c_lift vs c_drag? (y/n): ") == "y":
-        x_axis = [test_cases[i].c_drag_pressure for i in test_cases]
-        c_lift_axis = [test_cases[i].c_lift_pressure for i in test_cases]
-        plt.figure()
-        plt.plot(x_axis, c_lift_axis, marker='o')
-        plt.xlabel("Drag coefficient (c_drag)")
-        plt.ylabel("Lift coefficient (c_lift)")
-        plt.title("Lift coefficient vs Drag coefficient (considering pressure forces only)")
-        plt.grid(True, axis="both")
-        plt.axhline(y=0, color='k', linewidth=0.5)
+        c_lift_pressure_axis = [test_cases[i].c_lift_pressure for i in test_cases]
+        c_lift_axis = [test_cases[i].c_lift for i in test_cases]
+        
+        ax1.plot(x_axis, c_lift_pressure_axis, label="Lift polar(from pressure distribution)", marker='x', color="green")
+        ax1.plot(x_axis, c_lift_axis, label="Lift polar(from total drag)", marker='x', color="purple")
+        ax1.set_xlabel("Angle of attack (degrees)")
+        ax1.set_ylabel("Lift coefficient")
+        ax1.set_title("Lift coefficient vs Angle of attack")
+        ax1.grid(True, axis="both")
+        ax1.axhline(y=0, color='k', linewidth=0.5)
+        ax1.legend()
+        
+        x_axis_drag = [test_cases[i].c_drag_pressure for i in test_cases]
+        ax2.plot(x_axis_drag, c_lift_pressure_axis, label="Lift polar(from pressure distribution)", marker='x', color="green")
+        ax2.plot(x_axis_drag, c_lift_axis, label="Lift polar(from total drag)", marker='x', color="purple")
+        ax2.set_xlabel("Drag coefficient (c_drag)")
+        ax2.set_ylabel("Lift coefficient (c_lift)")
+        ax2.set_title("Lift coefficient vs Drag coefficient")
+        ax2.grid(True, axis="both")
+        ax2.axhline(y=0, color='k', linewidth=0.5)
+        ax2.legend()
+        
+        plt.tight_layout()
         plt.show()
 
