@@ -53,7 +53,7 @@ class AirfoilTest:
         self.dynamic_pressure = 0.211804 + 1.928442 * (delta_p_b) + 1.879374e-4 * (delta_p_b)**2
         
         ### Is this black magic or correct ???
-        self.static_pressure = p_barometric * 100 + p_pitot_total - self.dynamic_pressure
+        self.static_pressure = p_pitot_total - self.dynamic_pressure  # + p_barometric * 100 
         ###
         print("Static pressure:", self.static_pressure, "Dynamic pressure:", self.dynamic_pressure)
 
@@ -83,46 +83,46 @@ class AirfoilTest:
         integrate_c_p_normal_pressureSide = self.cp_normal_pressureSide_distribution(domain)
 
 
-        self.u_wake = [np.sqrt((2*p_total_wake[i]/rho)) for i in range(len(p_total_wake))]
+    
         
         self.pressure_static_wake_distribution = interpolate.interp1d(ports_loc_static_wake_2d, p_static_wake, kind="linear", fill_value = (p_static_wake[0], p_static_wake[-1]), bounds_error=False)
         self.pressure_total_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, p_total_wake, kind="linear", fill_value = (p_total_wake[0], p_total_wake[-1]), bounds_error=False)
-        self.u_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, self.u_wake, kind="linear", fill_value = (self.u_wake[0], self.u_wake[-1]), bounds_error=False)    
-
+        
         
         
         """
         Drag calculation based on wake survey
         """
-        domain_wake = np.linspace(0, 0.219, 20)
+        domain_wake = np.linspace(0.0, 0.219, 300)
 
         p_s_wake = self.pressure_static_wake_distribution(domain_wake)
         p_t_wake = self.pressure_total_wake_distribution(domain_wake)
 
-        # Free-stream pressures
-        p_t_inf = self.static_pressure + self.dynamic_pressure
-        p_inf = self.static_pressure
         self.pitot_u_inf = np.sqrt(2 * (p_pitot_total - p_pitot_static) / self.rho)
-
+        wake_p_t_inf = (p_t_wake[0]+p_t_wake[-1])/2
+        wake_p_s_inf = (p_s_wake[0]+p_s_wake[-1])/2
+        self.wake_u_inf = np.sqrt(2 * (wake_p_t_inf - wake_p_s_inf) / self.rho)
         # Wake velocity from Bernoulli
-        self.u_wake = np.sqrt( 2*(p_t_wake - p_s_wake) / self.rho )
+        self.u_wake = np.sqrt( 2* (p_t_wake - p_s_wake) / self.rho )
+        self.u_wake_distribution = interpolate.interp1d(domain_wake, self.u_wake, kind="linear", fill_value = (self.u_wake[0], self.u_wake[-1]), bounds_error=False) 
 
         # Momentum deficit term
         momentum_deficit = self.rho * sp.integrate.trapezoid(
-            (self.pitot_u_inf - self.u_wake) * self.u_wake,
+            (self.wake_u_inf - self.u_wake) * self.u_wake,
             x=domain_wake
         )
 
         # Pressure deficit term (wake not fully recovered)
         pressure_deficit = sp.integrate.trapezoid(
-            (p_pitot_static - p_s_wake),
+            (self.static_pressure - p_s_wake),
             x=domain_wake
         )
 
-        # Total drag (no turbulence term!)
-        drag_integral = momentum_deficit + pressure_deficit
+        # Total drag 
+        drag_integral =pressure_deficit  + momentum_deficit 
+        # drag_integral = np.abs(momentum_deficit) + np.abs(pressure_deficit)
 
-        self.c_drag = drag_integral / (0.5 * self.rho * self.u_inf**2 * 0.16)
+        self.c_drag = drag_integral / (0.5 * self.rho * self.wake_u_inf**2 * 0.16)
 
         print()
 
@@ -204,7 +204,9 @@ if __name__ == "__main__":
             integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
             u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
             
-            ax2.axhline(y=test_cases[i].pitot_u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].pitot_u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].pitot_u_inf, color='b', linestyle='--', label=f"u_inf (by pitot-static tube) = {test_cases[i].pitot_u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=f"u_inf (by wake total pressure) = {test_cases[i].wake_u_inf:.2f} m/s")
             ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake")
             ax2.set_ylabel("Velocity [m/s]")
             ax2.legend(loc="upper right")
@@ -219,6 +221,7 @@ if __name__ == "__main__":
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
         
         x_axis = [test_cases[i].alpha for i in test_cases]
+
         c_lift_pressure_axis = [test_cases[i].c_lift_pressure for i in test_cases]
         c_lift_axis = [test_cases[i].c_lift for i in test_cases]
         
