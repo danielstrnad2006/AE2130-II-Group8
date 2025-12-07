@@ -226,7 +226,7 @@ if __name__ == "__main__":
         c_lift_axis = [test_cases[i].c_lift for i in test_cases]
         
         ax1.plot(x_axis, c_lift_pressure_axis, label="Lift polar(from pressure distribution)", marker='x', color="green")
-        ax1.plot(x_axis, c_lift_axis, label="Lift polar(from total drag)", marker='x', color="purple")
+        ax1.plot(x_axis, c_lift_axis, label="Lift polar(incl. viscous drag)", marker='x', color="purple")
         ax1.set_xlabel("Angle of attack (degrees)")
         ax1.set_ylabel("Lift coefficient")
         ax1.set_title("Lift coefficient vs Angle of attack")
@@ -234,9 +234,10 @@ if __name__ == "__main__":
         ax1.axhline(y=0, color='k', linewidth=0.5)
         ax1.legend()
         
-        x_axis_drag = [test_cases[i].c_drag_pressure for i in test_cases]
-        ax2.plot(x_axis_drag, c_lift_pressure_axis, label="Lift polar(from pressure distribution)", marker='x', color="green")
-        ax2.plot(x_axis_drag, c_lift_axis, label="Lift polar(from total drag)", marker='x', color="purple")
+        x_axis_drag_pressure = [test_cases[i].c_drag_pressure for i in test_cases]
+        x_axis_drag = [test_cases[i].c_drag for i in test_cases]
+        ax2.plot(x_axis_drag_pressure, c_lift_pressure_axis, label="Drag polar(from pressure distribution)", marker='x', color="green")
+        ax2.plot(x_axis_drag, c_lift_axis, label="Drag polar(incl. viscous drag)", marker='x', color="purple")
         ax2.set_xlabel("Drag coefficient (c_drag)")
         ax2.set_ylabel("Lift coefficient (c_lift)")
         ax2.set_title("Lift coefficient vs Drag coefficient")
