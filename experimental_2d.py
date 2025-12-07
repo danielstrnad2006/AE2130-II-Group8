@@ -19,7 +19,10 @@ ports_loc_suctionSide_2d = np.array([0,  0.0035626,  0.0133331,  0.0366108,  0.0
 pressure_pressureSide_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=range (33, 57))
 ports_loc_pressureSide_2d = np.array([0,  0.0043123,  0.0147147,  0.0392479,  0.0779506,  0.120143,  0.1632276,  0.2067013,  0.2503792,  0.2941554,  0.3379772,  0.3818675,  0.4257527,  0.4696278,  0.5135062,  0.5573662,  0.6012075,  0.6450502,  0.688901,  0.7328011,  0.7767783,  0.8207965,  0.8647978,  1]  )
 
-
+y_contrib_suctionSide_2d = np.array([0.000038577, 0.0000800575, 0.0001053025, 0.000127796, 0.0001126315, 0.00008465, 0.000062229, 0.0000445705, 0.00003, 0.0000175355, 6.37249999999998E-06, -4.14100000000004E-06, -0.0000142985, -0.0000242025, -0.0000337015, -0.000042139, -0.000048886, -0.0000544005, -0.0000593975, -0.00006366, -0.0000668585, -0.0000686435, -0.000068136, -0.000097423, -0.0000638345
+])
+y_contrib_pressureSide_2d = np.array([0.0028588, 0.00546375, 0.00600135, 0.00639975, 0.00497405, 0.0032738, 0.0021592, 0.00139345, 0.000821499999999999, 0.000354099999999999, -4.96999999999992E-05, -0.00041595, -0.000763750000000001, -0.0011086, -0.00144845, -0.0017891, -0.00213685, -0.00247445, -0.0027874, -0.00304505, -0.0032151, -0.003308, -0.00641365, -0.0047437
+])
 pressure_total_wake_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=range (57, 104))
 ports_loc_total_wake_2d = np.array([0, 0.012, 0.021, 0.027, 0.033, 0.039, 0.045, 0.051, 0.057, 0.063, 0.069, 0.072, 0.075, 0.078, 0.081, 0.084, 0.087, 0.09, 0.093, 0.096, 0.099, 0.102, 0.105, 0.108, 0.111, 0.114, 0.117, 0.12, 0.123, 0.126, 0.129, 0.132, 0.135, 0.138, 0.141, 0.144, 0.147, 0.15, 0.156, 0.162, 0.168, 0.174, 0.18, 0.186, 0.195, 0.207, 0.219
 ])
@@ -52,6 +55,7 @@ class AirfoilTest:
         ### Is this black magic or correct ???
         self.static_pressure = p_barometric * 100 + p_pitot_total - self.dynamic_pressure
         ###
+        print("Static pressure:", self.static_pressure, "Dynamic pressure:", self.dynamic_pressure)
 
         self.alpha = alpha
         self.rho = rho
@@ -59,39 +63,70 @@ class AirfoilTest:
         self.temperature = temperature + 273.15  # Convert to Kelvin
         self.u_inf = np.sqrt(2 * self.dynamic_pressure / rho)
         self.viscosity = 1.716e-5 * (self.temperature / 273.15)**1.5 * (273.15 + 110.4) / (self.temperature + 110.4)  # Sutherland's law
-        print("viscosity:", self.viscosity)
+
         self.reynolds_number = (rho * self.u_inf * 0.16) / self.viscosity  # Calculation of Reynolds number based on chord length of 16 cm
         print("Temp:", self.temperature,"U_inf:", self.u_inf, "Re:", self.reynolds_number, "density:", self.rho)
 
         
-        c_p_normal__suctionSide_arr = np.array([p_suctionSide[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
-        c_p_normal__pressureSide_arr = np.array([p_pressureSide[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
+        c_p_suctionSide_arr = np.array([p_suctionSide[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
+        c_p_pressureSide_arr = np.array([p_pressureSide[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
 
         
-        self.cp_normal_suctionSide_distribution = interpolate.interp1d(ports_loc_suctionSide_2d, c_p_normal__suctionSide_arr, kind="linear", fill_value = "extrapolate")
+        self.cp_normal_suctionSide_distribution = interpolate.interp1d(x=ports_loc_suctionSide_2d, y=c_p_suctionSide_arr, kind=1, fill_value = 0)
         
-        self.cp_normal_pressureSide_distribution = interpolate.interp1d(ports_loc_pressureSide_2d, c_p_normal__pressureSide_arr, kind="linear", fill_value = "extrapolate")
+        self.cp_normal_pressureSide_distribution = interpolate.interp1d(x=ports_loc_pressureSide_2d, y=c_p_pressureSide_arr, kind=1, fill_value = 0)
         
-
-       
-        domain = np.linspace(0,1, 200)
+        self.c_axial = sum([c_p_suctionSide_arr[i] * y_contrib_suctionSide_2d[i] for i in range(len(ports_loc_suctionSide_2d))]) + sum([c_p_pressureSide_arr[i] * y_contrib_pressureSide_2d[i] for i in range(len(ports_loc_pressureSide_2d))])
+        
+        domain = np.linspace(0,1, 300)
         integrate_c_p_normal_suctionSide = self.cp_normal_suctionSide_distribution(domain)
         integrate_c_p_normal_pressureSide = self.cp_normal_pressureSide_distribution(domain)
 
-        domain_wake = np.linspace(0, 0.219, 200)
 
+        self.u_wake = [np.sqrt((2*p_total_wake[i]/rho)) for i in range(len(p_total_wake))]
+        
         self.pressure_static_wake_distribution = interpolate.interp1d(ports_loc_static_wake_2d, p_static_wake, kind="linear", fill_value = (p_static_wake[0], p_static_wake[-1]), bounds_error=False)
         self.pressure_total_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, p_total_wake, kind="linear", fill_value = (p_total_wake[0], p_total_wake[-1]), bounds_error=False)
 
-        integrate_pressure_static_wake = self.pressure_static_wake_distribution(domain_wake)
-        integrate_pressure_total_wake = self.pressure_total_wake_distribution(domain_wake)
-        integrate_u_wake = [np.sqrt(2*(integrate_pressure_total_wake[i] - integrate_pressure_static_wake[i])/rho) for i in range(len(domain_wake))]
-        wake_integrand_1 = [el*(self.u_inf - el) for el in integrate_u_wake]
-        wake_integrand_2 = [(el) for el in integrate_pressure_static_wake]
-        drag_integral = self.rho * sp.integrate.trapezoid(wake_integrand_1, x=domain_wake)  + sp.integrate.trapezoid(wake_integrand_2, x=domain_wake)
-        c_drag = drag_integral / (0.5 * self.rho * self.u_inf**2 * 0.16)
-        print("Drag integral:", drag_integral, "c_drag:", c_drag)
-        self.c_drag = c_drag
+
+        
+        
+        """
+        Drag calculation based on wake survey
+        """
+        domain_wake = np.linspace(0, 0.219, 20)
+
+        p_s_wake = self.pressure_static_wake_distribution(domain_wake)
+        p_t_wake = self.pressure_total_wake_distribution(domain_wake)
+
+        # Free-stream pressures
+        p_t_inf = p_barometric * 100 + p_pitot_total
+        p_inf = self.static_pressure
+        u_inf = np.sqrt(2 * (p_t_inf - p_inf) / self.rho)
+        # Wake velocity from Bernoulli
+        self.u_wake = np.sqrt( 2*(p_t_wake - (self.static_pressure-p_barometric*100)) / self.rho )
+
+        # Momentum deficit term
+        momentum_deficit = self.rho * sp.integrate.trapezoid(
+            (u_inf - self.u_wake) * self.u_wake,
+            x=domain_wake
+        )
+
+        # Pressure deficit term (wake not fully recovered)
+        pressure_deficit = sp.integrate.trapezoid(
+            (p_inf - p_s_wake),
+            x=domain_wake
+        )
+
+        # Total drag (no turbulence term!)
+        drag_integral = momentum_deficit + pressure_deficit
+
+        self.c_drag = drag_integral / (0.5 * self.rho * self.u_inf**2 * 0.16)
+
+        print("Drag integral:", drag_integral, "c_drag:", self.c_drag)
+        print()
+
+
 
 
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
@@ -99,9 +134,12 @@ class AirfoilTest:
         self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         self.c_moment_025c = self.c_moment_LE + 0.25 * self.c_normal
 
-        self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
+        self.c_lift_pressure = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
+        self.c_drag_pressure = self.c_normal * np.sin(np.deg2rad(self.alpha)) + self.c_axial * np.cos(np.deg2rad(self.alpha))
 
-
+        
+        #self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
+        
        
 test_cases = {}
 for i, run_nr in enumerate(run_nr_2d):
@@ -126,14 +164,14 @@ if __name__ == "__main__":
 # Example plots for user to visualize results
 
 # Plot c_p distribution for user-specified run numbers
-    
+
     i = None
     i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
     if i in range(1,42):
-        x_axis = np.linspace(0, 1, 100)
+        
         plt.figure()
-        plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="pressure side")
-        plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
+        plt.plot(ports_loc_pressureSide_2d, test_cases[i].cp_normal_pressureSide_distribution(ports_loc_pressureSide_2d), label="c_p distribution over the pressure side", color = "red", marker = "x")
+        plt.plot(ports_loc_suctionSide_2d, test_cases[i].cp_normal_suctionSide_distribution(ports_loc_suctionSide_2d), label="c_p distribution over the suction side", color = "blue", marker = "x")
         plt.xlabel("Position along chord")
         plt.ylabel("Pressure coefficient (c_p)")
         plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°, and Reynolds number = {test_cases[i].reynolds_number:.2e}")
@@ -148,41 +186,54 @@ if __name__ == "__main__":
     i = None
     i = int(input("Enter run number to plot c_p distribution (e.g., 1-41), otherwise press enter: "))
     if i in range(1,42):
-        x_axis = np.linspace(-0.10, 0.30, 200)
-        plt.figure()
-        plt.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
-        plt.plot(x_axis, test_cases[i].pressure_static_wake_distribution(x_axis), label="wake static pressure")
-        plt.xlabel("Position along the wake [m]")
-        plt.ylabel("Pressure [Pa]")
+        x_axis = np.linspace(0, 0.219, 200)
+        fig, ax1 = plt.subplots()
+        
+        ax1.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
+        ax1.plot(x_axis, test_cases[i].pressure_static_wake_distribution(x_axis), label="wake static pressure")
+        ax1.set_xlabel("Position along the wake [m]")
+        ax1.set_ylabel("Pressure [Pa]")
+        ax1.invert_yaxis()
+        ax1.grid(True, axis="both")
+        ax1.axhline(y=0, color='k', linewidth=0.5)
+        
+        ax2 = ax1.twinx()
+        domain_wake = np.linspace(0, 0.219, 200)
+        integrate_pressure_static_wake = test_cases[i].pressure_static_wake_distribution(domain_wake)
+        integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
+        u_wake = [np.sqrt(2*(integrate_pressure_total_wake[k] - integrate_pressure_static_wake[k])/test_cases[i].rho) for k in range(len(domain_wake))]
+        
+        ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].u_inf:.2f} m/s")
+        ax2.plot(domain_wake, u_wake, color='orange', label="u_wake")
+        ax2.set_ylabel("Velocity [m/s]")
+        ax2.legend(loc="upper right")
+        
+        ax1.legend(loc="upper left")
         plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
-        plt.legend()
-        plt.gca().invert_yaxis()
-        plt.grid(True, axis="both")
-        plt.axhline(y=0, color='k', linewidth=0.5)
         plt.show()
 
 
     if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
         x_axis = [test_cases[i].alpha for i in test_cases]
-        c_lift_axis = [test_cases[i].c_lift for i in test_cases]
+        c_lift_axis = [test_cases[i].c_lift_pressure for i in test_cases]
         plt.figure()
         plt.plot(x_axis, c_lift_axis, marker='o')
         plt.xlabel("Angle of attack (degrees)")
         plt.ylabel("Lift coefficient (c_lift)")
-        plt.title("Lift coefficient vs Angle of attack")
+        plt.title("Lift coefficient vs Angle of attack (considering pressure forces only)")
         plt.grid(True, axis="both")
         plt.axhline(y=0, color='k', linewidth=0.5)
         plt.show()
 
 
 if input("Do you want to plot c_lift vs c_drag? (y/n): ") == "y":
-        x_axis = [test_cases[i].c_drag for i in test_cases]
-        c_lift_axis = [test_cases[i].c_lift for i in test_cases]
+        x_axis = [test_cases[i].c_drag_pressure for i in test_cases]
+        c_lift_axis = [test_cases[i].c_lift_pressure for i in test_cases]
         plt.figure()
         plt.plot(x_axis, c_lift_axis, marker='o')
         plt.xlabel("Drag coefficient (c_drag)")
         plt.ylabel("Lift coefficient (c_lift)")
-        plt.title("Lift coefficient vs Drag coefficient")
+        plt.title("Lift coefficient vs Drag coefficient (considering pressure forces only)")
         plt.grid(True, axis="both")
         plt.axhline(y=0, color='k', linewidth=0.5)
         plt.show()
