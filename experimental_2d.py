@@ -63,24 +63,19 @@ class AirfoilTest:
         self.reynolds_number = (rho * self.u_inf * 0.16) / self.viscosity  # Calculation of Reynolds number based on chord length of 16 cm
         print("Temp:", self.temperature,"U_inf:", self.u_inf, "Re:", self.reynolds_number, "density:", self.rho)
 
-        c_p_axial__suctionSide_arr = np.array([p_suctionSide[i]*coefs_axial_suctionSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
-        c_p_normal__suctionSide_arr = np.array([p_suctionSide[i]*coefs_normal_suctionSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
-        c_p_axial__pressureSide_arr = np.array([p_pressureSide[i]*coefs_axial_pressureSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
-        c_p_normal__pressureSide_arr = np.array([p_pressureSide[i]*coefs_normal_pressureSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
+        
+        c_p_normal__suctionSide_arr = np.array([p_suctionSide[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
+        c_p_normal__pressureSide_arr = np.array([p_pressureSide[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
 
         
-        self.cp_axial_suctionSide_distribution = interpolate.interp1d(ports_loc_suctionSide_2d, c_p_axial__suctionSide_arr, kind="linear", fill_value = "extrapolate")
         self.cp_normal_suctionSide_distribution = interpolate.interp1d(ports_loc_suctionSide_2d, c_p_normal__suctionSide_arr, kind="linear", fill_value = "extrapolate")
         
-        self.cp_axial_pressureSide_distribution = interpolate.interp1d(ports_loc_pressureSide_2d, c_p_axial__pressureSide_arr, kind="linear", fill_value = "extrapolate")
         self.cp_normal_pressureSide_distribution = interpolate.interp1d(ports_loc_pressureSide_2d, c_p_normal__pressureSide_arr, kind="linear", fill_value = "extrapolate")
         
 
        
         domain = np.linspace(0,1, 200)
-        integrate_c_p_axial_suctionSide = self.cp_axial_suctionSide_distribution(domain)
         integrate_c_p_normal_suctionSide = self.cp_normal_suctionSide_distribution(domain)
-        integrate_c_p_axial_pressureSide = self.cp_axial_pressureSide_distribution(domain)
         integrate_c_p_normal_pressureSide = self.cp_normal_pressureSide_distribution(domain)
 
         domain_wake = np.linspace(0, 0.219, 200)
@@ -100,8 +95,7 @@ class AirfoilTest:
 
 
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
-        self.c_axial = sp.integrate.trapezoid(integrate_c_p_axial_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_axial_pressureSide, x=domain)
-
+        
         self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         self.c_moment_025c = self.c_moment_LE + 0.25 * self.c_normal
 
@@ -149,7 +143,6 @@ if __name__ == "__main__":
         plt.axhline(y=0, color='k', linewidth=0.5)
         plt.show()
         print ("Normal force coefficient is computed to be: ", test_cases[i].c_normal)
-        print ("Axial force coefficient is computed to be: ", test_cases[i].c_axial)
 
 # Plot Wake pressure distributions for user-specified run numbers
     i = None
