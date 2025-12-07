@@ -76,7 +76,7 @@ class AirfoilTest:
         
         self.cp_normal_pressureSide_distribution = interpolate.interp1d(x=ports_loc_pressureSide_2d, y=c_p_pressureSide_arr, kind=1, fill_value = 0)
         
-        self.c_axial = sum([c_p_suctionSide_arr[i] * y_contrib_suctionSide_2d[i] for i in range(len(ports_loc_suctionSide_2d))]) + sum([c_p_pressureSide_arr[i] * y_contrib_pressureSide_2d[i] for i in range(len(ports_loc_pressureSide_2d))])
+        self.c_axial = -(sum([c_p_suctionSide_arr[i] * y_contrib_suctionSide_2d[i] for i in range(len(ports_loc_suctionSide_2d))]) + sum([c_p_pressureSide_arr[i] * y_contrib_pressureSide_2d[i] for i in range(len(ports_loc_pressureSide_2d))]))
         
         domain = np.linspace(0,1, 300)
         integrate_c_p_normal_suctionSide = self.cp_normal_suctionSide_distribution(domain)
@@ -124,10 +124,7 @@ class AirfoilTest:
 
         self.c_drag = drag_integral / (0.5 * self.rho * self.u_inf**2 * 0.16)
 
-        print("Drag integral:", drag_integral, "c_drag:", self.c_drag)
         print()
-
-
 
 
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
@@ -137,7 +134,7 @@ class AirfoilTest:
 
         self.c_lift_pressure = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
         self.c_drag_pressure = self.c_normal * np.sin(np.deg2rad(self.alpha)) + self.c_axial * np.cos(np.deg2rad(self.alpha))
-
+        print("c_normal:", self.c_normal, "c_axial:", self.c_axial)
         
         self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
         
@@ -225,8 +222,8 @@ if __name__ == "__main__":
         c_lift_pressure_axis = [test_cases[i].c_lift_pressure for i in test_cases]
         c_lift_axis = [test_cases[i].c_lift for i in test_cases]
         
-        ax1.plot(x_axis, c_lift_pressure_axis, label="Lift polar(from pressure distribution)", marker='x', color="green")
-        ax1.plot(x_axis, c_lift_axis, label="Lift polar(incl. viscous drag)", marker='x', color="purple")
+        ax1.plot(x_axis, c_lift_pressure_axis, label="Lift polar (from pressure distribution)", marker='x', color="green")
+        ax1.plot(x_axis, c_lift_axis, label="Lift polar  (incl. viscous drag)", marker='x', color="purple")
         ax1.set_xlabel("Angle of attack (degrees)")
         ax1.set_ylabel("Lift coefficient")
         ax1.set_title("Lift coefficient vs Angle of attack")
