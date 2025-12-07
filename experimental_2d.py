@@ -36,6 +36,7 @@ coefs_normal_suctionSide_2d = np.array([0, 0.419217860339591, 0.762278972374461,
 coefs_axial_pressureSide_2d = np.array([1, 0.798381793639415, 0.44781173529397, 0.266842260814572, 0.153364969894653, 0.0930099904875881, 0.0603799247157211, 0.0393542209962685, 0.0245976759304083, 0.0129808461683564, 0.00319245870964433, -0.00545214872686113, -0.0135021824989098, -0.0213033777989277, -0.0292114749708079, -0.0367876672323331, -0.0447439612866815, -0.0526176511070318, -0.0600681188641278, -0.0667300495959605, -0.0715374993158656, -0.074220753673238, -0.0756868536204657, -0.0699998036767682])
 coefs_normal_pressureSide_2d = np.array([0, 0.602151568614672, 0.894127871019019, 0.963740218027331, 0.98816961398801, 0.995665175482953, 0.998175467886946, 0.999225322582338, 0.999697431395531, 0.999915745266947, 0.999994904090709, 0.999985136926675, 0.999908841378936, 0.999773057295683, 0.999573253808859, 0.999323104676162, 0.998998487450495, 0.998614731912152, 0.99819428023613, 0.997771066167445, 0.997437910945655, 0.997241836128116, 0.997131636339472, 0.997547005150742])
 
+temperature_2d = np.genfromtxt('raw_Group8_2d.txt', skip_header=2, usecols=(5))
 
 
 """
@@ -43,14 +44,25 @@ Initialize an object for each test scenario which automatically calculates all t
 """
 
 class AirfoilTest: 
-    def __init__(self, run_nr, alpha, rho, p_pressureSide, p_suctionSide, p_total_wake, p_static_wake, p_pitot_total, p_pitot_static, p_barometric, delta_p_b):
+    def __init__(self, run_nr, alpha, rho, p_pressureSide, p_suctionSide, p_total_wake, p_static_wake, p_pitot_total, p_pitot_static, p_barometric, delta_p_b, temperature):
         self.run_nr = run_nr
         
         self.dynamic_pressure = 0.211804 + 1.928442 * (delta_p_b) + 1.879374e-4 * (delta_p_b)**2
         
-        self.static_pressure = p_barometric * 100
+        ### Is this black magic or correct ???
+        self.static_pressure = p_barometric * 100 + p_pitot_total - self.dynamic_pressure
+        ###
+
         self.alpha = alpha
         self.rho = rho
+
+        self.temperature = temperature + 273.15  # Convert to Kelvin
+        self.u_inf = np.sqrt(2 * self.dynamic_pressure / rho)
+        self.viscosity = 1.716e-5 * (self.temperature / 273.15)**1.5 * (273.15 + 110.4) / (self.temperature + 110.4)  # Sutherland's law
+        print("viscosity:", self.viscosity)
+        self.reynolds_number = (rho * self.u_inf * 0.16) / self.viscosity  # Calculation of Reynolds number based on chord length of 16 cm
+        print("Temp:", self.temperature,"U_inf:", self.u_inf, "Re:", self.reynolds_number, "density:", self.rho)
+
         c_p_axial__suctionSide_arr = np.array([p_suctionSide[i]*coefs_axial_suctionSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
         c_p_normal__suctionSide_arr = np.array([p_suctionSide[i]*coefs_normal_suctionSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
         c_p_axial__pressureSide_arr = np.array([p_pressureSide[i]*coefs_axial_pressureSide_2d[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
@@ -64,23 +76,39 @@ class AirfoilTest:
         self.cp_normal_pressureSide_distribution = interpolate.interp1d(ports_loc_pressureSide_2d, c_p_normal__pressureSide_arr, kind="linear", fill_value = "extrapolate")
         
 
-        self.pressure_static_wake_distribution = interpolate.interp1d(ports_loc_static_wake_2d, p_static_wake, kind="linear", fill_value = (p_static_wake[0], p_static_wake[-1]), bounds_error=False)
-        self.pressure_total_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, p_total_wake, kind="linear", fill_value = (p_total_wake[0], p_total_wake[-1]), bounds_error=False)
-
+       
         domain = np.linspace(0,1, 200)
         integrate_c_p_axial_suctionSide = self.cp_axial_suctionSide_distribution(domain)
         integrate_c_p_normal_suctionSide = self.cp_normal_suctionSide_distribution(domain)
         integrate_c_p_axial_pressureSide = self.cp_axial_pressureSide_distribution(domain)
         integrate_c_p_normal_pressureSide = self.cp_normal_pressureSide_distribution(domain)
 
-    
+        domain_wake = np.linspace(0, 0.219, 200)
+
+        self.pressure_static_wake_distribution = interpolate.interp1d(ports_loc_static_wake_2d, p_static_wake, kind="linear", fill_value = (p_static_wake[0], p_static_wake[-1]), bounds_error=False)
+        self.pressure_total_wake_distribution = interpolate.interp1d(ports_loc_total_wake_2d, p_total_wake, kind="linear", fill_value = (p_total_wake[0], p_total_wake[-1]), bounds_error=False)
+
+        integrate_pressure_static_wake = self.pressure_static_wake_distribution(domain_wake)
+        integrate_pressure_total_wake = self.pressure_total_wake_distribution(domain_wake)
+        integrate_u_wake = [np.sqrt(2*(integrate_pressure_total_wake[i] - integrate_pressure_static_wake[i])/rho) for i in range(len(domain_wake))]
+        wake_integrand_1 = [el*(self.u_inf - el) for el in integrate_u_wake]
+        wake_integrand_2 = [(el) for el in integrate_pressure_static_wake]
+        drag_integral = self.rho * sp.integrate.trapezoid(wake_integrand_1, x=domain_wake)  + sp.integrate.trapezoid(wake_integrand_2, x=domain_wake)
+        c_drag = drag_integral / (0.5 * self.rho * self.u_inf**2 * 0.16)
+        print("Drag integral:", drag_integral, "c_drag:", c_drag)
+        self.c_drag = c_drag
+
+
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         self.c_axial = sp.integrate.trapezoid(integrate_c_p_axial_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_axial_pressureSide, x=domain)
 
-        self.c_lift = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
-        self.c_drag = self.c_normal * np.sin(np.deg2rad(self.alpha)) + self.c_axial * np.cos(np.deg2rad(self.alpha))
+        self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
+        self.c_moment_025c = self.c_moment_LE + 0.25 * self.c_normal
 
-    
+        self.c_lift = self.c_normal * (np.cos(np.deg2rad(self.alpha)) + np.sin(np.deg2rad(self.alpha))**2/np.cos(np.deg2rad(self.alpha))) - self.c_drag * np.tan(np.deg2rad(self.alpha))
+
+
+       
 test_cases = {}
 for i, run_nr in enumerate(run_nr_2d):
     airfoil_test = AirfoilTest(
@@ -94,7 +122,8 @@ for i, run_nr in enumerate(run_nr_2d):
         p_pitot_total=pressure_pitot_total_2d[i],
         p_pitot_static=pressure_pitot_static_2d[i],
         p_barometric=p_bar_2d[i],
-        delta_p_b=delta_p_2d[i]
+        delta_p_b=delta_p_2d[i],
+        temperature=temperature_2d[i]
     )
     test_cases[int(run_nr)] = airfoil_test
 
@@ -113,7 +142,7 @@ if __name__ == "__main__":
         plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), label="suction side")
         plt.xlabel("Position along chord")
         plt.ylabel("Pressure coefficient (c_p)")
-        plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°")
+        plt.title(f"c_p distribution at angle of attack = {test_cases[i].alpha}°, and Reynolds number = {test_cases[i].reynolds_number:.2e}")
         plt.legend()
         plt.gca().invert_yaxis()
         plt.grid(True, axis="both")
