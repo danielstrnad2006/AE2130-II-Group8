@@ -49,7 +49,8 @@ print(a3D)
 # Finding tau
 tau = (m.pi * A / a2D) * (a2D / a3D - 1) - 1
 #print("Lift slope:", a3D*180/m.pi, "and tau:", tau)
-exp_Cdi = exp_Cl**2 / (m.pi * A * tau)
+e = 1/(1+tau)
+exp_Cdi = exp_Cl**2 / (m.pi * A * e)
 print(tau)
 
 
