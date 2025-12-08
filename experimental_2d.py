@@ -53,7 +53,7 @@ class AirfoilTest:
         self.dynamic_pressure = 0.211804 + 1.928442 * (delta_p_b) + 1.879374e-4 * (delta_p_b)**2
         
         ### Is this black magic or correct ???
-        self.static_pressure = p_pitot_total - self.dynamic_pressure  # + p_barometric * 100 
+        self.static_pressure = p_pitot_total - self.dynamic_pressure  + p_barometric * 100 
         ###
         print("Static pressure:", self.static_pressure, "Dynamic pressure:", self.dynamic_pressure)
 

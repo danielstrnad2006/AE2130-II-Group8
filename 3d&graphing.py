@@ -13,6 +13,7 @@ exp_alpha = exp_data_3d[:,2] # deg
 exp_drag_F = exp_data_3d[:,6] # N
 exp_lift_F = exp_data_3d[:,7] # N
 exp_rho = exp_data_3d[:, 10] # kg/m^3
+exp_delta_pb = exp_data_3d[:, 3]
 
 
 xflr_data_3d = np.genfromtxt('T1-19.2ms.csv', delimiter=",", skip_header=7)
@@ -25,19 +26,20 @@ exp_2D_alpha = np.array([test_cases[i].alpha for i in test_cases])
 exp_2D_Cl = np.array([test_cases[i].c_lift for i in test_cases])
 
 # ----- Calculations -----
-exp_q = 1/2 * exp_rho * const['velocity']**2 
+#exp_q = 1/2 * exp_rho * const['velocity']**2 
+exp_q = 0.211804 + 1.928442 * (exp_delta_pb) + 1.879374e-4 * (exp_delta_pb)**2
 exp_Cl = exp_lift_F / (exp_q * const['surface_area_3D'])
 exp_Cd = exp_drag_F / (exp_q * const['surface_area_3D'])
 
 A = const['span_3D']/const['chord']
 print(A)
-#print(A)
+print(A)
 
 # Finding slope of 2d
 key = (exp_2D_alpha > 0) & (exp_2D_alpha < 10)
 a2D, intercept_2d = np.polyfit(exp_2D_alpha[key], exp_2D_Cl[key], 1)  # [1/deg], [-]
 a2D = a2D*180/m.pi
-#a2D = 2 * m.pi
+#a2D += 0.5
 print(a2D)
 
 # Finding slope of 3d
