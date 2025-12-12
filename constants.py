@@ -7,6 +7,9 @@ const = {
 
     # 3D properties
     'surface_area_3D': 0.066146, # m^2
-    'span_3D': 0.4169*2 # m
+    'span_3D': 0.4169*2, # m
+
+    # 2D properties
+    'surface_area_2D': 0.064 # m^2
 
 }
