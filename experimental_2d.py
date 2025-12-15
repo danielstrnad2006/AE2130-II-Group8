@@ -54,6 +54,7 @@ class AirfoilTest:
         
         ### Is this black magic or correct ???
         self.static_pressure = p_pitot_total - self.dynamic_pressure  # + p_barometric * 100 
+        print(self.static_pressure)
         ###
         print("Static pressure:", self.static_pressure, "Dynamic pressure:", self.dynamic_pressure)
 
@@ -67,9 +68,8 @@ class AirfoilTest:
         self.reynolds_number = (rho * self.u_inf * 0.16) / self.viscosity  # Calculation of Reynolds number based on chord length of 16 cm
         print("Temp:", self.temperature,"U_inf:", self.u_inf, "Re:", self.reynolds_number, "density:", self.rho)
 
-        
-        c_p_suctionSide_arr = np.array([p_suctionSide[i]/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
-        c_p_pressureSide_arr = np.array([p_pressureSide[i]/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
+        c_p_suctionSide_arr = np.array([(p_suctionSide[i]-self.static_pressure)/self.dynamic_pressure for i in range(len(ports_loc_suctionSide_2d))])
+        c_p_pressureSide_arr = np.array([(p_pressureSide[i]-self.static_pressure)/self.dynamic_pressure for i in range(len(ports_loc_pressureSide_2d))])
 
         
         self.cp_normal_suctionSide_distribution = interpolate.interp1d(x=ports_loc_suctionSide_2d, y=c_p_suctionSide_arr, kind=1, fill_value = 0)
