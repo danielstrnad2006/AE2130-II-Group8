@@ -32,7 +32,15 @@ exp_q = 0.211804 + 1.928442 * (exp_delta_pb) + 1.879374e-4 * (exp_delta_pb)**2
 exp_Cl = exp_lift_F / (exp_q * const['surface_area_3D'])
 exp_Cd = exp_drag_F / (exp_q * const['surface_area_3D'])
 
-A = const['span_3D']/const['chord']
+# a = np.deg2rad(exp_alpha)
+
+# D = exp_drag_F*np.cos(a) + exp_lift_F*np.sin(a)
+# L = -exp_drag_F*np.sin(a) + exp_lift_F*np.cos(a)
+
+# exp_Cl = L / (exp_q * const["surface_area_3D"])
+# exp_Cd = D / (exp_q * const["surface_area_3D"])
+
+A = const['span_3D']/const['chord'] #- 0.2
 print(A)
 
 # # Finding slope of 2d
@@ -44,14 +52,14 @@ print(A)
 
 # Finding slope of 2d
 alpha, Cl = np.rad2deg(np.array(alpha)), np.array(Cl)
-key = (alpha > 0) & (alpha < 10)
+key = (alpha >= -3) & (alpha <= 7)
 a2D, intercept_2d = np.polyfit(alpha[key], Cl[key], 1)  # [1/deg], [-]
 a2D = a2D*180/m.pi
 #a2D += 0.5
 print(a2D)
 
 # Finding slope of 3d
-key = (exp_alpha > 0) & (exp_alpha < 10)
+key = (exp_alpha >= -3) & (exp_alpha <= 7)
 a3D, intercept_3d = np.polyfit(exp_alpha[key], exp_Cl[key], 1)  # [1/deg], [-]
 a3D = a3D*180/m.pi
 print(a3D)
@@ -84,70 +92,70 @@ plt.legend(('2D wing experimental', '3D wing experimental'))
 plt.show()
 
 
-# Plotting lift curve
-plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.grid()
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Experiment', 'XFLR5'))
-plt.show()
+# # Plotting lift curve
+# plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
 
-# Plotting lift polar
-plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.grid()
-plt.xlabel(r'C$_{\text{D}}$ [-]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Experiment', 'XFLR5'))
-plt.show()
+# # Plotting lift polar
+# plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
 
-# Plotting Clalpha best fit line
-# plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(alpha, Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(linear_alpha_2D, linear_cl_2D, linestyle='dotted', linewidth=1, color='black')
-plt.grid()
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'C$_{\text{l}}$ [-]')
-plt.legend(('Experiment', 'Linear region line of best fit'))
-plt.show()
+# # Plotting Clalpha best fit line
+# # plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(alpha, Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(linear_alpha_2D, linear_cl_2D, linestyle='dotted', linewidth=1, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{l}}$ [-]')
+# plt.legend(('Experiment', 'Linear region line of best fit'))
+# plt.show()
 
-# Plotting CLalpha best fit line
-plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(linear_alpha_3D, linear_cl_3D, linestyle='dotted', linewidth=1, color='black')
-plt.grid()
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Experiment', 'Linear region line of best fit'))
-plt.show()
+# # Plotting CLalpha best fit line
+# plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(linear_alpha_3D, linear_cl_3D, linestyle='dotted', linewidth=1, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'Linear region line of best fit'))
+# plt.show()
 
-# Plotting induced drag
-plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.grid()
-plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Induced Drag', 'Total Drag'))
-plt.show()
+# # Plotting induced drag
+# plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Induced Drag', 'Total Drag'))
+# plt.show()
 
-# Plotting induced drag comparison
-plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_Cdi[:-1], xflr_Cl[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.grid()
-plt.xlabel(r'C$_{\text{D}_{\text{i}}}$ [-]')
-plt.ylabel(r'C$_{\text{L}}$ [-]')
-plt.legend(('Experiment', 'XFLR5'))
-plt.show()
+# # Plotting induced drag comparison
+# plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_Cdi[:-1], xflr_Cl[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}_{\text{i}}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
 
-# Plotting 2d xflr vs experimental
-# plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.plot(xflr_alpha_2d[:-1], xflr_Cl_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
-plt.grid()
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'C$_{\text{l}}$ [-]')
-plt.legend(('Experiment', 'XFOIL'))
-plt.show()
+# # Plotting 2d xflr vs experimental
+# # plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_alpha_2d[:-1], xflr_Cl_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{l}}$ [-]')
+# plt.legend(('Experiment', 'XFOIL'))
+# plt.show()
 
 # # Plotting pressure coefficient distribution at a given AOA
 # AOA = float(input("AOA for pressure coefficients comparison [deg]: "))
