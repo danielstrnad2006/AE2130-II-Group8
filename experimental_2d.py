@@ -139,7 +139,7 @@ class AirfoilTest:
 
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         
-        self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide*domain, x=domain)
+        self.c_moment_LE = + sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) - sp.integrate.trapezoid(integrate_c_p_normal_pressureSide*domain, x=domain)
         self.c_moment_025c = self.c_moment_LE + 0.25 * self.c_normal
 
         self.c_lift_pressure = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
@@ -217,7 +217,7 @@ if __name__ == "__main__":
             
             ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf (obtained from dynamic pressure) = {test_cases[i].u_inf:.2f} m/s")
             ax2.axhline(y=test_cases[i].pitot_u_inf, color='b', linestyle='--', label=f"u_inf (by pitot-static tube) = {test_cases[i].pitot_u_inf:.2f} m/s")
-            ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=f"u_inf (by total pressure at edges of wake rake) = {test_cases[i].wake_u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=r"$V_{\infty}$" + f" (by total pressure at edges of wake rake) = {test_cases[i].wake_u_inf:.2f} m/s")
             ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake [m/s]")
             ax2.set_ylabel("Velocity [m/s]")
             ax2.legend(loc="upper right")
@@ -251,8 +251,8 @@ if __name__ == "__main__":
         ax2.plot(x_axis_drag_freestream, c_lift_axis, label="Drag polar(incl. viscous drag), using the reference freestream velocity", marker='x', color="purple")
         ax2.plot(x_axis_drag_wake, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity at the edges of the wake", marker='x', color="orange")
         ax2.plot(x_axis_drag_pitot, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity from the pitot-static tube", marker='x', color="red")
-        ax2.set_xlabel("Drag coefficient (c_drag)")
-        ax2.set_ylabel("Lift coefficient (c_lift)")
+        ax2.set_xlabel(r"Drag coefficient ($c_{drag}$)")
+        ax2.set_ylabel(r"Lift coefficient ($c_{lift}$)")
         ax2.set_title("Lift coefficient vs Drag coefficient")
         ax2.grid(True, axis="both")
         ax2.axhline(y=0, color='k', linewidth=0.5)
@@ -260,4 +260,16 @@ if __name__ == "__main__":
         
         plt.tight_layout()
         plt.show()
+
+    if input("Do you want to plot vs alpha? (y/n): ") == "y":
+        plt.plot([test_cases[i].alpha for i in test_cases], [test_cases[i].c_moment_LE for i in test_cases], label="Moment coefficient about leading edge", marker='x')
+        plt.plot([test_cases[i].alpha for i in test_cases], [test_cases[i].c_moment_025c for i in test_cases], label="Moment coefficient about 0.25c", marker='x')
+        plt.xlabel(r'$\alpha$ (degrees)')
+        plt.ylabel("Moment coefficient")
+        plt.title(r"Moment coefficient vs $\alpha$")
+        plt.grid(True, axis="both")
+        plt.axhline(y=0, color='k', linewidth=0.5)
+        plt.legend()
+        plt.show()
+
 
