@@ -139,7 +139,7 @@ class AirfoilTest:
 
         self.c_normal = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
         
-        self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide, x=domain)
+        self.c_moment_LE = - sp.integrate.trapezoid(integrate_c_p_normal_suctionSide*domain, x=domain) + sp.integrate.trapezoid(integrate_c_p_normal_pressureSide*domain, x=domain)
         self.c_moment_025c = self.c_moment_LE + 0.25 * self.c_normal
 
         self.c_lift_pressure = self.c_normal * np.cos(np.deg2rad(self.alpha)) - self.c_axial * np.sin(np.deg2rad(self.alpha))
@@ -199,11 +199,12 @@ if __name__ == "__main__":
         if i in range(1,42):
             x_axis = np.linspace(0, 0.219, 100)
             fig, ax1 = plt.subplots()
-            
+            ax1.figure.set_size_inches(6, 4)
+
             ax1.plot(x_axis, test_cases[i].pressure_total_wake_distribution(x_axis), label="wake total pressure")
             ax1.plot(x_axis, test_cases[i].pressure_static_wake_distribution(x_axis), label="wake static pressure")
-            ax1.set_xlabel("Position along the wake [m]")
-            ax1.set_ylabel("Pressure [Pa]")
+            ax1.set_xlabel("Position along the wake rake [m]")
+            ax1.set_ylabel("Pressure relative to reference pressure [Pa]")
             ax1.invert_yaxis()
             ax1.grid(True, axis="both")
             ax1.axhline(y=0, color='k', linewidth=0.5)
@@ -214,17 +215,15 @@ if __name__ == "__main__":
             integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
             u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
             
-            ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf = {test_cases[i].u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf (obtained from dynamic pressure) = {test_cases[i].u_inf:.2f} m/s")
             ax2.axhline(y=test_cases[i].pitot_u_inf, color='b', linestyle='--', label=f"u_inf (by pitot-static tube) = {test_cases[i].pitot_u_inf:.2f} m/s")
-            ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=f"u_inf (by wake total pressure) = {test_cases[i].wake_u_inf:.2f} m/s")
-            ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake")
+            ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=f"u_inf (by total pressure at edges of wake rake) = {test_cases[i].wake_u_inf:.2f} m/s")
+            ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake [m/s]")
             ax2.set_ylabel("Velocity [m/s]")
             ax2.legend(loc="upper right")
             
-            ax1.legend(loc="upper left")
-            plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
-            ax1.legend(loc="upper left")
-            plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°")
+            ax1.legend(loc="lower left")
+            plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°, \n and Reynolds number = {test_cases[i].reynolds_number:.2e}")
             plt.show()
     
     if input("Do you want to plot c_lift vs alpha? (y/n): ") == "y":
