@@ -215,8 +215,8 @@ if __name__ == "__main__":
             integrate_pressure_total_wake = test_cases[i].pressure_total_wake_distribution(domain_wake)
             u_wake_axis = test_cases[i].u_wake_distribution(domain_wake)
             
-            ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label=f"u_inf (obtained from dynamic pressure) = {test_cases[i].u_inf:.2f} m/s")
-            ax2.axhline(y=test_cases[i].pitot_u_inf, color='b', linestyle='--', label=f"u_inf (by pitot-static tube) = {test_cases[i].pitot_u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].u_inf, color='r', linestyle='--', label= r"$V_{\infty}$" + f" (obtained from dynamic pressure) = {test_cases[i].u_inf:.2f} m/s")
+            ax2.axhline(y=test_cases[i].pitot_u_inf, color='b', linestyle='--', label=r"$V_{\infty}$" + f" (by pitot-static tube) = {test_cases[i].pitot_u_inf:.2f} m/s")
             ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=r"$V_{\infty}$" + f" (by total pressure at edges of wake rake) = {test_cases[i].wake_u_inf:.2f} m/s")
             ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake [m/s]")
             ax2.set_ylabel("Velocity [m/s]")
