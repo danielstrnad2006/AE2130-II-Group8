@@ -2,16 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 xflr_data_2d = np.genfromtxt('XFLR5_data_2D_Re=2e5.csv', delimiter=",", skip_header=5)
-xflr_alpha = xflr_data_2d[:,0] # deg
-xflr_Cl = xflr_data_2d[:,2] # [-]
-xflr_Cd = xflr_data_2d[:,1] # [-]
-xflr_Cm = xflr_data_2d[:,3] # [-]
+xflr_alpha_2d = xflr_data_2d[:,0] # deg
+xflr_Cl_2d = xflr_data_2d[:,2] # [-]
+xflr_Cd_2d = xflr_data_2d[:,1] # [-]
+xflr_Cm_2d = xflr_data_2d[:,3] # [-]
 
 # Couldn't make it work with np.genfromtxt so had to make this helper function
 def extract_raw_rows(filename, start, end):
     with open(filename, "r") as f:
         lines = f.readlines()
-    rows = lines[start:end+1]
+    rows = lines[start:end]
 
     result = []
     for line in rows:
@@ -26,7 +26,7 @@ def extract_raw_rows(filename, start, end):
 def plot_cp_at_alpha(alpha: float, viscous: bool = True):
     n = int(alpha*2 + 10)
     start = int(7 + 186*n)
-    pressure_coeffs = extract_raw_rows("XFLR5_fulldata_2D_Re=2e5.csv", start, start + 179)
+    pressure_coeffs = extract_raw_rows("XFLR5_fulldata_2D_Re=2e5.csv", start, start + 180)
 
     cp_inviscous, cp_viscous = pressure_coeffs[:, 0], pressure_coeffs[:, 1]
 
@@ -36,14 +36,13 @@ def plot_cp_at_alpha(alpha: float, viscous: bool = True):
 
     #plt.plot(x, y, linestyle='-', linewidth=1.5, color='black')
     if viscous:
-        plt.plot(x, cp_viscous, linestyle='-', linewidth=1.5)
+        plt.plot(x, cp_viscous, linestyle='-', linewidth=1.5, label = 'XFOIL')
     else: plt.plot(x, cp_inviscous, linestyle='-', linewidth=1.5)
     #plt.axis("equal")
     plt.grid()
     plt.gca().invert_yaxis()
-    plt.show()
 
-    print(pressure_coeffs)
+    #print(pressure_coeffs)
 
 
 
@@ -59,5 +58,3 @@ def plot_cp_at_alpha(alpha: float, viscous: bool = True):
 
 # print(plot_cp_at_alpha(-5))
 # print(plot_cp_at_alpha(-4.5))
-
-plot_cp_at_alpha(5)

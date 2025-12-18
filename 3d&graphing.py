@@ -1,0 +1,228 @@
+import numpy as np
+import math as m
+import matplotlib.pyplot as plt
+
+from constants import const
+from experimental_2d import test_cases
+from xflr_2d import plot_cp_at_alpha, xflr_alpha_2d, xflr_Cd_2d, xflr_Cl_2d, xflr_Cm_2d
+
+#from try2_experimental import Cl, alpha
+
+# ----- Loading Data -----
+exp_data_3d = np.genfromtxt('raw_Group8_3d.txt', skip_header=2)
+exp_alpha = exp_data_3d[:,2] # deg
+exp_drag_F = exp_data_3d[:,6] # N
+exp_lift_F = exp_data_3d[:,7] # N
+exp_rho = exp_data_3d[:, 10] # kg/m^3
+exp_delta_pb = exp_data_3d[:, 3]
+
+
+xflr_data_3d = np.genfromtxt('T1-19.2ms.csv', delimiter=",", skip_header=7)
+xflr_alpha = xflr_data_3d[:,0] # deg
+xflr_Cl = xflr_data_3d[:,2] # [-]
+xflr_Cd = xflr_data_3d[:,5] # [-]
+xflr_Cdi = xflr_data_3d[:, 3] # [-]
+
+exp_2D_alpha = np.array([test_cases[i].alpha for i in test_cases])
+exp_2D_Cl = np.array([test_cases[i].c_lift for i in test_cases])
+exp_2D_Cl_pressure = np.array([test_cases[i].c_lift_pressure for i in test_cases])
+exp_2D_Cd = np.array([test_cases[i].c_drag for i in test_cases])
+exp_2D_Cm = np.array([test_cases[i].c_moment_025c for i in test_cases])
+
+# ----- Calculations -----
+#exp_q = 1/2 * exp_rho * const['velocity']**2 
+exp_q = 0.211804 + 1.928442 * (exp_delta_pb) + 1.879374e-4 * (exp_delta_pb)**2
+exp_Cl = exp_lift_F / (exp_q * const['surface_area_3D'])
+exp_Cd = exp_drag_F / (exp_q * const['surface_area_3D'])
+
+# a = np.deg2rad(exp_alpha)
+
+# D = exp_drag_F*np.cos(a) + exp_lift_F*np.sin(a)
+# L = -exp_drag_F*np.sin(a) + exp_lift_F*np.cos(a)
+
+# exp_Cl = L / (exp_q * const["surface_area_3D"])
+# exp_Cd = D / (exp_q * const["surface_area_3D"])
+
+A = const['span_3D']/const['chord'] #- 0.2
+print(A)
+
+# # Finding slope of 2d
+# key = (exp_2D_alpha > 0) & (exp_2D_alpha < 10)
+# a2D, intercept_2d = np.polyfit(exp_2D_alpha[key], exp_2D_Cl[key], 1)  # [1/deg], [-]
+# a2D = a2D*180/m.pi
+# #a2D += 0.5
+# print(a2D)
+
+# Finding slope of 2d
+alpha, Cl = np.array(exp_2D_alpha), np.array(exp_2D_Cl)
+key = (alpha >= -3) & (alpha <= 7)
+a2D, intercept_2d = np.polyfit(alpha[key], Cl[key], 1)  # [1/deg], [-]
+a2D = a2D*180/m.pi
+#a2D += 0.5
+print(a2D)
+
+# Finding slope of 3d
+key = (exp_alpha >= -3) & (exp_alpha <= 7)
+a3D, intercept_3d = np.polyfit(exp_alpha[key], exp_Cl[key], 1)  # [1/deg], [-]
+a3D = a3D*180/m.pi
+print(a3D)
+
+# Finding tau
+tau = (m.pi * A / a2D) * (a2D / a3D - 1) - 1
+#print("Lift slope:", a3D*180/m.pi, "and tau:", tau)
+e = 1/(1+tau)
+exp_Cdi = exp_Cl**2 / (m.pi * A * e)
+print(tau)
+
+
+# Preparing for plotting
+linear_alpha_2D = np.linspace(np.min(exp_alpha), np.max(exp_alpha), 100)
+linear_cl_2D = linear_alpha_2D * a2D * m.pi/180 + intercept_2d
+
+linear_alpha_3D = np.linspace(np.min(exp_alpha), np.max(exp_alpha), 100)
+linear_cl_3D = linear_alpha_3D * a3D * m.pi/180 + intercept_3d
+
+
+# ----- PLotting -----
+# Plotting 2D vs 3D data
+# plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(alpha, Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_alpha, exp_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{l}}$ or C$_{\text{L}}$ [-]')
+# plt.legend(('2D wing experimental', '3D wing experimental'))
+# plt.show()
+
+
+# # Plotting lift curve
+# plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_alpha, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
+
+# # Plotting 3D drag polar against predictions
+# plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_Cd, xflr_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
+
+# # Plotting drag polar 2D vs 3D
+# plt.plot(exp_2D_Cd[:28], exp_2D_Cl[:28], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_Cd[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(exp_2D_Cd, exp_2D_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(exp_Cd, exp_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('2D wing', '3D wing'))
+# plt.show()
+
+# # Plotting Clalpha best fit line
+# # plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(alpha, Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(linear_alpha_2D, linear_cl_2D, linestyle='dotted', linewidth=1, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{l}}$ [-]')
+# plt.legend(('Experiment', 'Linear region line of best fit'))
+# plt.show()
+
+# # Plotting CLalpha best fit line
+# plt.plot(exp_alpha[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(linear_alpha_3D, linear_cl_3D, linestyle='dotted', linewidth=1, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'Linear region line of best fit'))
+# plt.show()
+
+# # Plotting induced drag
+# plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_Cd[:27], exp_Cl[:27], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}}$ or C$_{\text{D}_{\text{i}}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Induced Drag', 'Total Drag'))
+# plt.show()
+
+# # Plotting induced drag comparison
+# plt.plot(exp_Cdi[:27], exp_Cl[:27], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_Cdi[:-1], xflr_Cl[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{D}_{\text{i}}}$ [-]')
+# plt.ylabel(r'C$_{\text{L}}$ [-]')
+# plt.legend(('Experiment', 'XFLR5'))
+# plt.show()
+
+
+
+# ----- 2D -----
+
+# # Plotting lift curve: 2d xflr vs experimental
+# plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_alpha_2d[:-1], xflr_Cl_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'$\alpha$ [deg]')
+# plt.ylabel(r'C$_{\text{l}}$ [-]')
+# plt.legend(('Experiment', 'XFOIL'))
+# plt.show()
+
+# Plotting lift curve: 2d pressure vs including wake rake
+plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient including wake rake measurements')
+# plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(exp_2D_alpha[:29], exp_2D_Cl_pressure[:29], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient from pressure distribution excluding wake rake')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{l}}$ [-]')
+plt.legend()
+plt.show()
+
+# # # Plotting drag polar: 2d xflr vs experimental 
+# plt.plot(exp_2D_Cd[:28], exp_2D_Cl[:28], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(xflr_Cd_2d, xflr_Cl_2d, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(exp_2D_Cd, exp_2D_Cl, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# # plt.plot(exp_Cd, exp_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.grid()
+# plt.xlabel(r'C$_{\text{d}}$ [-]')
+# plt.ylabel(r'C$_{\text{l}}$ [-]')
+# plt.legend(('Experiment', 'XFOIL'))
+# plt.show()
+
+# Plotting pitching moment polar: 2d xflr vs experimental
+plt.plot(exp_2D_alpha[:29], exp_2D_Cm[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(xflr_alpha_2d[:-1], xflr_Cm_2d[:-1], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{m}}$ [-]')
+plt.legend(('Experiment', 'XFOIL'))
+plt.show()
+
+
+# Plotting pressure coefficient distribution at a given AOA
+AOA = float(input("AOA for pressure coefficients comparison [deg]: "))
+plot_cp_at_alpha(AOA)
+x_axis = np.linspace(0, 1, 100)
+if AOA <= 8:
+    i = (AOA + 5) * 2 + 1
+else:
+    i = (AOA - 8) * 2 + 14
+plt.plot(x_axis, test_cases[i].cp_normal_pressureSide_distribution(x_axis), label="Experiment", color='black')
+plt.plot(x_axis, test_cases[i].cp_normal_suctionSide_distribution(x_axis), color='black')
+plt.xlabel("Position along chord [-]")
+plt.ylabel(r"C$_{\text{p}}$ [-]")
+plt.legend()
+plt.grid(True, axis="both")
+plt.axhline(y=0, color='k', linewidth=0.5)
+plt.show()
