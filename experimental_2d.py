@@ -220,7 +220,7 @@ if __name__ == "__main__":
             ax2.axhline(y=test_cases[i].wake_u_inf, color='g', linestyle='--', label=r"$V_{\infty}$" + f" (by total pressure at edges of wake rake) = {test_cases[i].wake_u_inf:.2f} m/s")
             ax2.plot(domain_wake, u_wake_axis, color='orange', label="u_wake [m/s]")
             ax2.set_ylabel("Velocity [m/s]")
-            ax2.legend(loc="upper right")
+            ax2.legend(loc="center right")
             
             ax1.legend(loc="lower left")
             plt.title(f"pressure in wake distribution at angle of attack = {test_cases[i].alpha}°, \n and Reynolds number = {test_cases[i].reynolds_number:.2e}")
@@ -234,10 +234,10 @@ if __name__ == "__main__":
         c_lift_pressure_axis = [test_cases[i].c_lift_pressure for i in test_cases]
         c_lift_axis = [test_cases[i].c_lift for i in test_cases]
         
-        ax1.plot(x_axis, c_lift_pressure_axis, label="Lift polar (from pressure distribution)", marker='x', color="green")
-        ax1.plot(x_axis, c_lift_axis, label="Lift polar  (incl. viscous drag)", marker='x', color="purple")
-        ax1.set_xlabel("Angle of attack (degrees)")
-        ax1.set_ylabel("Lift coefficient")
+        ax1.plot(x_axis, c_lift_pressure_axis, marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient from pressure distribution excluding wake rake')
+        ax1.plot(x_axis, c_lift_axis, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient including wake rake measurements')
+        plt.xlabel(r'$\alpha$ [deg]')
+        plt.ylabel(r'C$_{\text{l}}$ [-]')
         ax1.set_title("Lift coefficient vs Angle of attack")
         ax1.grid(True, axis="both")
         ax1.axhline(y=0, color='k', linewidth=0.5)
@@ -248,18 +248,19 @@ if __name__ == "__main__":
         x_axis_drag_wake = [test_cases[i].c_drag_wake for i in test_cases]
         x_axis_drag_pitot = [test_cases[i].c_drag_pitot for i in test_cases]
         ax2.plot(x_axis_drag_pressure, c_lift_pressure_axis, label="Drag polar(from pressure distribution)", marker='x', color="green")
-        ax2.plot(x_axis_drag_freestream, c_lift_axis, label="Drag polar(incl. viscous drag), using the reference freestream velocity", marker='x', color="purple")
-        ax2.plot(x_axis_drag_wake, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity at the edges of the wake", marker='x', color="orange")
-        ax2.plot(x_axis_drag_pitot, c_lift_axis, label="Drag polar (incl. viscous drag), using the freestream velocity from the pitot-static tube", marker='x', color="red")
+        ax2.plot(x_axis_drag_freestream, c_lift_axis, label="Drag polar(incl. viscous drag),\n using the reference freestream velocity", marker='x', color="purple")
+        ax2.plot(x_axis_drag_wake, c_lift_axis, label="Drag polar (incl. viscous drag),\n using the freestream velocity at the edges of the wake", marker='x', color="orange")
+        ax2.plot(x_axis_drag_pitot, c_lift_axis, label="Drag polar (incl. viscous drag),\n using the freestream velocity from the pitot-static tube", marker='x', color="red")
         ax2.set_xlabel(r"Drag coefficient ($c_{drag}$)")
         ax2.set_ylabel(r"Lift coefficient ($c_{lift}$)")
         ax2.set_title("Lift coefficient vs Drag coefficient")
         ax2.grid(True, axis="both")
         ax2.axhline(y=0, color='k', linewidth=0.5)
-        ax2.legend()
+        ax2.legend(loc = "lower right")
         
         plt.tight_layout()
         plt.show()
+
 
     if input("Do you want to plot vs alpha? (y/n): ") == "y":
         plt.plot([test_cases[i].alpha for i in test_cases], [test_cases[i].c_moment_LE for i in test_cases], label="Moment coefficient about leading edge", marker='x')

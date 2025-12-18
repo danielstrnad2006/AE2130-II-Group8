@@ -25,6 +25,7 @@ xflr_Cdi = xflr_data_3d[:, 3] # [-]
 
 exp_2D_alpha = np.array([test_cases[i].alpha for i in test_cases])
 exp_2D_Cl = np.array([test_cases[i].c_lift for i in test_cases])
+exp_2D_Cl_pressure = np.array([test_cases[i].c_lift_pressure for i in test_cases])
 exp_2D_Cd = np.array([test_cases[i].c_drag for i in test_cases])
 exp_2D_Cm = np.array([test_cases[i].c_moment_025c for i in test_cases])
 
@@ -174,6 +175,17 @@ linear_cl_3D = linear_alpha_3D * a3D * m.pi/180 + intercept_3d
 # plt.ylabel(r'C$_{\text{l}}$ [-]')
 # plt.legend(('Experiment', 'XFOIL'))
 # plt.show()
+
+# Plotting lift curve: 2d pressure vs including wake rake
+plt.plot(exp_2D_alpha[:29], exp_2D_Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient including wake rake measurements')
+# plt.plot(alpha[:29], Cl[:29], marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+# plt.plot(exp_2D_alpha, exp_2D_Cl, marker='o', markersize=5,markerfacecolor='orange', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
+plt.plot(exp_2D_alpha[:29], exp_2D_Cl_pressure[:29], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black', label='Lift coefficient from pressure distribution excluding wake rake')
+plt.grid()
+plt.xlabel(r'$\alpha$ [deg]')
+plt.ylabel(r'C$_{\text{l}}$ [-]')
+plt.legend()
+plt.show()
 
 # # # Plotting drag polar: 2d xflr vs experimental 
 # plt.plot(exp_2D_Cd[:28], exp_2D_Cl[:28], marker='^', markersize=5,markerfacecolor='lightblue', markeredgecolor='black', linestyle='-', linewidth=1.5, color='black')
